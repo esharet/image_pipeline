@@ -48,6 +48,7 @@ from message_filters import ApproximateTimeSynchronizer
 from std_msgs.msg import String
 from std_srvs.srv import Empty
 
+from rclpy.qos import qos_profile_sensor_data 
 class SpinThread(threading.Thread):
     """
     Thread that spins the ros node, while imshow runs in the main thread
@@ -98,7 +99,7 @@ class CalibrationNode(Node):
                 print("Waiting for service", cli.srv_name, "...")
                 # check all services so they are ready.
                 try:
-                    cli.wait_for_service(timeout_sec=5)
+                    cli.wait_for_service(timeout_sec=0.5)
                     print("OK")
                 except Exception as e:
                     print("Service not found: %s".format(e))
@@ -116,7 +117,7 @@ class CalibrationNode(Node):
         ts = synchronizer([lsub, rsub], 4)
         ts.registerCallback(self.queue_stereo)
 
-        msub = message_filters.Subscriber(self, sensor_msgs.msg.Image, 'image')
+        msub = message_filters.Subscriber(self, sensor_msgs.msg.Image, 'image', qos_profile=qos_profile_sensor_data )
         msub.registerCallback(self.queue_monocular)
 
         self.q_mono = deque([], 1)
